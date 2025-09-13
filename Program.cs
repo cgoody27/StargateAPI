@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;
 
@@ -13,13 +14,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StargateContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("StarbaseApiDatabase")));
 
-builder.Services.AddLogging(configure =>
-{
-    configure.ClearProviders();
-    configure.AddConsole();
-    configure.AddDebug();
-    configure.SetMinimumLevel(LogLevel.Information);
-});
+Log.Logger = new LoggerConfiguration()
+    .WriteTo.Console()
+    .WriteTo.SQLite("Data Source=logs.db;")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.Services.AddMediatR(cfg =>
 {
