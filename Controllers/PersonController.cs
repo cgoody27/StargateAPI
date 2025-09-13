@@ -42,7 +42,7 @@ namespace StargateAPI.Controllers
             }
         }
 
-        [HttpGet("{name}")]
+        [HttpGet("{name}")]  
         public async Task<IActionResult> GetPersonByName(string name)
         {
             try

@@ -29,9 +29,9 @@ namespace StargateAPI.Business.Queries
 
             var person = await _context.Connection.QueryFirstOrDefaultAsync<PersonAstronaut>(query);
 
-            result.Person = person;
+            result.Person = person!;
 
-            query = $"SELECT * FROM [AstronautDuty] WHERE {person.PersonId} = PersonId Order By DutyStartDate Desc";
+            query = $"SELECT * FROM [AstronautDuty] WHERE {person?.PersonId} = PersonId Order By DutyStartDate Desc";
 
             var duties = await _context.Connection.QueryAsync<AstronautDuty>(query);
 
