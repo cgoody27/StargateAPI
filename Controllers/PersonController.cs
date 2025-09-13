@@ -73,11 +73,8 @@ namespace StargateAPI.Controllers
 
             try
             {
-                //var person = JsonSerializer.Deserialize<UpdatePerson>(personJson);
-
                 var result = await _mediator.Send(new UpdatePerson()
                 {
-                    Id = person!.Id,
                     Name = person!.Name,
                     AstronautDetail = person?.AstronautDetail,
                     AstronautDuties = person?.AstronautDuties ?? []

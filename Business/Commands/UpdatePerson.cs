@@ -9,7 +9,6 @@ namespace StargateAPI.Business.Commands
 {
     public class UpdatePerson : IRequest<UpdatePersonResult>
     {
-        public required int Id { get; set; }
         public required string Name { get; set; } = string.Empty;
         public virtual AstronautDetail? AstronautDetail { get; set; }
         public virtual ICollection<AstronautDuty> AstronautDuties { get; set; } = new HashSet<AstronautDuty>();
@@ -44,14 +43,13 @@ namespace StargateAPI.Business.Commands
         }
         public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
         {
-            var person = await _context.People.FirstOrDefaultAsync(z => z.Id == request.Id, cancellationToken);
+            var person = await _context.People.FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
 
             if (person is null)
             {
                 throw new Exception($"{request.Name} not found");
             }
 
-            person.Name = request.Name;
             person.AstronautDetail = request.AstronautDetail;
             person.AstronautDuties = request.AstronautDuties;
 
