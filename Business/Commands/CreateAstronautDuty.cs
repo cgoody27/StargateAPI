@@ -4,7 +4,6 @@ using MediatR.Pipeline;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
-using System.Net;
 
 namespace StargateAPI.Business.Commands;
 
@@ -42,7 +41,7 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
 
         var verifyNoPreviousDuty = _context.AstronautDuties.FirstOrDefault(z => z.DutyTitle == request.DutyTitle && z.DutyStartDate == request.DutyStartDate);
 
-        if (verifyNoPreviousDuty is not null) 
+        if (verifyNoPreviousDuty is not null)
             throw new BadHttpRequestException("Bad Request");
 
         _logger.LogInformation("Pre-processing CreateAstronautDuty request for Name {PersonName}", request.Name);

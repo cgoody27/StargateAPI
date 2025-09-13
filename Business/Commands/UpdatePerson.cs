@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using MediatR.Pipeline;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
@@ -31,7 +30,8 @@ public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
 
         var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-        if (person is null) {
+        if (person is null)
+        {
             throw new BadHttpRequestException("Bad Request");
         };
 

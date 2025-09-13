@@ -24,7 +24,7 @@ public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
     }
     public Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
-        if (request.Name == string.Empty) 
+        if (request.Name == string.Empty)
             throw new BadHttpRequestException("Bad Request - Name is required");
 
         var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);

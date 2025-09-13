@@ -4,7 +4,6 @@ using StargateAPI.Business.Commands;
 using StargateAPI.Business.Data;
 using StargateAPI.Business.Queries;
 using System.Net;
-using System.Text.Json;
 
 namespace StargateAPI.Controllers;
 
@@ -26,7 +25,7 @@ public class PersonController : ControllerBase
     {
         try
         {
-            var result = await _mediator.Send(new GetPeople() {});
+            var result = await _mediator.Send(new GetPeople() { });
             return this.GetResponse(result);
         }
         catch (Exception ex)
@@ -41,7 +40,7 @@ public class PersonController : ControllerBase
         }
     }
 
-    [HttpGet("{name}")]  
+    [HttpGet("{name}")]
     public async Task<IActionResult> GetPersonByName(string name)
     {
         if (string.IsNullOrWhiteSpace(name))
@@ -53,7 +52,7 @@ public class PersonController : ControllerBase
                 ResponseCode = (int)HttpStatusCode.BadRequest
             });
         }
-        
+
         try
         {
             var result = await _mediator.Send(new GetPersonByName()
@@ -75,7 +74,7 @@ public class PersonController : ControllerBase
         }
     }
 
-    [HttpPut("update")]  
+    [HttpPut("update")]
     public async Task<IActionResult> UpdatePerson([FromBody] Person person)
     {
         if (person == null || string.IsNullOrWhiteSpace(person.Name))
@@ -112,7 +111,7 @@ public class PersonController : ControllerBase
         }
     }
 
-    [HttpPost("create")]  
+    [HttpPost("create")]
     public async Task<IActionResult> CreatePerson([FromBody] string name)
     {
         if (string.IsNullOrWhiteSpace(name))

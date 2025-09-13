@@ -50,7 +50,7 @@ public class AstronautDutyController : ControllerBase
                     ResponseCode = (int)HttpStatusCode.NotFound
                 });
             }
-               
+
             _logger.LogInformation($"GetAstronautDutiesByName: {name} - Result: {result?.AstronautDuties?.Count ?? 0} duties found.");
 
             return this.GetResponse(result!);
@@ -64,7 +64,7 @@ public class AstronautDutyController : ControllerBase
                 Success = false,
                 ResponseCode = (int)HttpStatusCode.InternalServerError
             });
-        }            
+        }
     }
 
     [HttpPost("")]
