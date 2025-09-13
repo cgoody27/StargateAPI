@@ -13,6 +13,14 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<StargateContext>(options => 
     options.UseSqlite(builder.Configuration.GetConnectionString("StarbaseApiDatabase")));
 
+builder.Services.AddLogging(configure =>
+{
+    configure.ClearProviders();
+    configure.AddConsole();
+    configure.AddDebug();
+    configure.SetMinimumLevel(LogLevel.Information);
+});
+
 builder.Services.AddMediatR(cfg =>
 {
     cfg.AddRequestPreProcessor<CreateAstronautDutyPreProcessor>();
@@ -33,6 +41,9 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var logger = app.Services.GetRequiredService<ILogger<Program>>();
+logger.LogInformation("Starting application");
 
 app.Run();
 

@@ -6,115 +6,144 @@ using StargateAPI.Business.Queries;
 using System.Net;
 using System.Text.Json;
 
-namespace StargateAPI.Controllers
+namespace StargateAPI.Controllers;
+
+
+[ApiController]
+[Route("[controller]")]
+public class PersonController : ControllerBase
 {
-   
-    [ApiController]
-    [Route("[controller]")]
-    public class PersonController : ControllerBase
+    private readonly IMediator _mediator;
+    private readonly ILogger<PersonController> _logger;
+    public PersonController(IMediator mediator, ILogger<PersonController> logger)
     {
-        private readonly IMediator _mediator;
-        public PersonController(IMediator mediator)
+        _mediator = mediator;
+        _logger = logger;
+    }
+
+    [HttpGet("")]
+    public async Task<IActionResult> GetPeople()
+    {
+        try
         {
-            _mediator = mediator;
+            var result = await _mediator.Send(new GetPeople() {});
+            return this.GetResponse(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error in GetPeople");
+            return this.GetResponse(new BaseResponse()
+            {
+                Message = ex.Message,
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.InternalServerError
+            });
+        }
+    }
+
+    [HttpGet("{name}")]  
+    public async Task<IActionResult> GetPersonByName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return this.GetResponse(new BaseResponse()
+            {
+                Message = "Name is required",
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.BadRequest
+            });
+        }
+        
+        try
+        {
+            var result = await _mediator.Send(new GetPersonByName()
+            {
+                Name = name
+            });
+
+            return this.GetResponse(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in GetPersonByName for name: {name}");
+            return this.GetResponse(new BaseResponse()
+            {
+                Message = ex.Message,
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.InternalServerError
+            });
+        }
+    }
+
+    [HttpPut("update")]  
+    public async Task<IActionResult> UpdatePerson([FromBody] Person person)
+    {
+        if (person == null || string.IsNullOrWhiteSpace(person.Name))
+        {
+            return this.GetResponse(new BaseResponse()
+            {
+                Message = "Person and Name are required",
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.BadRequest
+            });
         }
 
-        [HttpGet("")]
-        public async Task<IActionResult> GetPeople()
+        try
         {
-            try
+            var result = await _mediator.Send(new UpdatePerson()
             {
-                var result = await _mediator.Send(new GetPeople()
-                {
+                Name = person!.Name,
+                AstronautDetail = person?.AstronautDetail,
+                AstronautDuties = person?.AstronautDuties ?? []
+            });
 
-                });
+            return this.GetResponse(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in UpdatePerson for name: {person.Name}");
 
-                return this.GetResponse(result);
-            }
-            catch (Exception ex)
+            return this.GetResponse(new BaseResponse()
             {
-                return this.GetResponse(new BaseResponse()
-                {
-                    Message = ex.Message,
-                    Success = false,
-                    ResponseCode = (int)HttpStatusCode.InternalServerError
-                });
-            }
+                Message = ex.Message,
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.InternalServerError
+            });
+        }
+    }
+
+    [HttpPost("create")]  
+    public async Task<IActionResult> CreatePerson([FromBody] string name)
+    {
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return this.GetResponse(new BaseResponse()
+            {
+                Message = "Name is required",
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.BadRequest
+            });
+        }
+        try
+        {
+            var result = await _mediator.Send(new CreatePerson()
+            {
+                Name = name
+            });
+
+            return this.GetResponse(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in CreatePerson for name: {name}");
+
+            return this.GetResponse(new BaseResponse()
+            {
+                Message = ex.Message,
+                Success = false,
+                ResponseCode = (int)HttpStatusCode.InternalServerError
+            });
         }
 
-        [HttpGet("{name}")]  
-        public async Task<IActionResult> GetPersonByName(string name)
-        {
-            try
-            {
-                var result = await _mediator.Send(new GetPersonByName()
-                {
-                    Name = name
-                });
-
-                return this.GetResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return this.GetResponse(new BaseResponse()
-                {
-                    Message = ex.Message,
-                    Success = false,
-                    ResponseCode = (int)HttpStatusCode.InternalServerError
-                });
-            }
-        }
-
-        [HttpPut("update")]  
-        public async Task<IActionResult> UpdatePerson([FromBody] Person person)
-        {
-            if (person == null)
-                throw new BadHttpRequestException("Bad Request - No person data provided");
-
-            try
-            {
-                var result = await _mediator.Send(new UpdatePerson()
-                {
-                    Name = person!.Name,
-                    AstronautDetail = person?.AstronautDetail,
-                    AstronautDuties = person?.AstronautDuties ?? []
-                });
-
-                return this.GetResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return this.GetResponse(new BaseResponse()
-                {
-                    Message = ex.Message,
-                    Success = false,
-                    ResponseCode = (int)HttpStatusCode.InternalServerError
-                });
-            }
-        }
-
-        [HttpPost("create")] // Added a unique route to resolve route conflict  
-        public async Task<IActionResult> CreatePerson([FromBody] string name)
-        {
-            try
-            {
-                var result = await _mediator.Send(new CreatePerson()
-                {
-                    Name = name
-                });
-
-                return this.GetResponse(result);
-            }
-            catch (Exception ex)
-            {
-                return this.GetResponse(new BaseResponse()
-                {
-                    Message = ex.Message,
-                    Success = false,
-                    ResponseCode = (int)HttpStatusCode.InternalServerError
-                });
-            }
-
-        }
     }
 }

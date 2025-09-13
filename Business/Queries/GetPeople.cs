@@ -4,37 +4,35 @@ using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
 
-namespace StargateAPI.Business.Queries
+namespace StargateAPI.Business.Queries;
+
+public class GetPeople : IRequest<GetPeopleResult>
 {
-    public class GetPeople : IRequest<GetPeopleResult>
+}
+
+public class GetPeopleHandler : IRequestHandler<GetPeople, GetPeopleResult>
+{
+    public readonly StargateContext _context;
+    public GetPeopleHandler(StargateContext context)
     {
-
+        _context = context;
     }
-
-    public class GetPeopleHandler : IRequestHandler<GetPeople, GetPeopleResult>
+    public async Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken)
     {
-        public readonly StargateContext _context;
-        public GetPeopleHandler(StargateContext context)
-        {
-            _context = context;
-        }
-        public async Task<GetPeopleResult> Handle(GetPeople request, CancellationToken cancellationToken)
-        {
-            var result = new GetPeopleResult();
+        var result = new GetPeopleResult();
 
-            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id";
+        var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id";
 
-            var people = await _context.Connection.QueryAsync<PersonAstronaut>(query);
+        var people = await _context.Connection.QueryAsync<PersonAstronaut>(query);
 
-            result.People = people.ToList();
+        result.People = people.ToList();
 
-            return result;
-        }
+        return result;
     }
+}
 
-    public class GetPeopleResult : BaseResponse
-    {
-        public List<PersonAstronaut> People { get; set; } = new List<PersonAstronaut> { };
+public class GetPeopleResult : BaseResponse
+{
+    public List<PersonAstronaut> People { get; set; } = new List<PersonAstronaut> { };
 
-    }
 }

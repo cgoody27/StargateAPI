@@ -4,37 +4,36 @@ using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
 
-namespace StargateAPI.Business.Queries
+namespace StargateAPI.Business.Queries;
+
+public class GetPersonByName : IRequest<GetPersonByNameResult>
 {
-    public class GetPersonByName : IRequest<GetPersonByNameResult>
+    public required string Name { get; set; } = string.Empty;
+}
+
+public class GetPersonByNameHandler : IRequestHandler<GetPersonByName, GetPersonByNameResult>
+{
+    private readonly StargateContext _context;
+    public GetPersonByNameHandler(StargateContext context)
     {
-        public required string Name { get; set; } = string.Empty;
+        _context = context;
     }
 
-    public class GetPersonByNameHandler : IRequestHandler<GetPersonByName, GetPersonByNameResult>
+    public async Task<GetPersonByNameResult> Handle(GetPersonByName request, CancellationToken cancellationToken)
     {
-        private readonly StargateContext _context;
-        public GetPersonByNameHandler(StargateContext context)
-        {
-            _context = context;
-        }
+        var result = new GetPersonByNameResult();
 
-        public async Task<GetPersonByNameResult> Handle(GetPersonByName request, CancellationToken cancellationToken)
-        {
-            var result = new GetPersonByNameResult();
+        var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE '{request.Name}' = a.Name";
 
-            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE '{request.Name}' = a.Name";
+        var person = await _context.Connection.QueryAsync<PersonAstronaut>(query);
 
-            var person = await _context.Connection.QueryAsync<PersonAstronaut>(query);
+        result.Person = person.FirstOrDefault();
 
-            result.Person = person.FirstOrDefault();
-
-            return result;
-        }
+        return result;
     }
+}
 
-    public class GetPersonByNameResult : BaseResponse
-    {
-        public PersonAstronaut? Person { get; set; }
-    }
+public class GetPersonByNameResult : BaseResponse
+{
+    public PersonAstronaut? Person { get; set; }
 }

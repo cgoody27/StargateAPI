@@ -4,60 +4,74 @@ using Microsoft.EntityFrameworkCore;
 using StargateAPI.Business.Data;
 using StargateAPI.Controllers;
 
-namespace StargateAPI.Business.Commands
+namespace StargateAPI.Business.Commands;
+
+public class CreatePerson : IRequest<CreatePersonResult>
 {
-    public class CreatePerson : IRequest<CreatePersonResult>
+    public required string Name { get; set; } = string.Empty;
+}
+
+public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
+{
+    private readonly StargateContext _context;
+    private readonly ILogger<CreatePersonPreProcessor> _logger;
+
+    public CreatePersonPreProcessor(StargateContext context, ILogger<CreatePersonPreProcessor> logger)
     {
-        public required string Name { get; set; } = string.Empty;
-    }
+        _context = context;
+        _logger = logger;
 
-    public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
+    }
+    public Task Process(CreatePerson request, CancellationToken cancellationToken)
     {
-        private readonly StargateContext _context;
-        public CreatePersonPreProcessor(StargateContext context)
-        {
-            _context = context;
-        }
-        public Task Process(CreatePerson request, CancellationToken cancellationToken)
-        {
-            var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
+        if (request.Name == string.Empty) 
+            throw new BadHttpRequestException("Bad Request - Name is required");
 
-            if (person is not null) throw new BadHttpRequestException("Bad Request");
+        var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-            return Task.CompletedTask;
-        }
+        if (person is not null) throw new BadHttpRequestException("Bad Request");
+
+        _logger.LogInformation("Pre-processing CreatePerson request for Name {PersonName}", request.Name);
+
+        return Task.CompletedTask;
     }
+}
 
-    public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
+public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonResult>
+{
+    private readonly StargateContext _context;
+    private readonly ILogger<CreatePersonHandler> _logger;
+
+    public CreatePersonHandler(StargateContext context, ILogger<CreatePersonHandler> logger)
     {
-        private readonly StargateContext _context;
-
-        public CreatePersonHandler(StargateContext context)
-        {
-            _context = context;
-        }
-        public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
-        {
-
-                var newPerson = new Person()
-                {
-                   Name = request.Name
-                };
-
-                await _context.People.AddAsync(newPerson);
-
-                await _context.SaveChangesAsync();
-
-                return new CreatePersonResult()
-                {
-                    Id = newPerson.Id
-                };
-          
-        }
+        _context = context;
+        _logger = logger;
     }
-
-    public class CreatePersonResult : BaseResponse
+    public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
-        public int Id { get; set; }
+        if (request.Name == string.Empty)
+            throw new BadHttpRequestException("Bad Request - Name is required");
+
+        var newPerson = new Person()
+        {
+            Name = request.Name
+        };
+
+        await _context.People.AddAsync(newPerson);
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created new person with ID {PersonId} and Name {PersonName}", newPerson.Id, newPerson.Name);
+
+        return new CreatePersonResult()
+        {
+            Id = newPerson.Id
+        };
+
     }
+}
+
+public class CreatePersonResult : BaseResponse
+{
+    public int Id { get; set; }
 }

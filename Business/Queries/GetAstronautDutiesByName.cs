@@ -4,47 +4,46 @@ using StargateAPI.Business.Data;
 using StargateAPI.Business.Dtos;
 using StargateAPI.Controllers;
 
-namespace StargateAPI.Business.Queries
+namespace StargateAPI.Business.Queries;
+
+public class GetAstronautDutiesByName : IRequest<GetAstronautDutiesByNameResult>
 {
-    public class GetAstronautDutiesByName : IRequest<GetAstronautDutiesByNameResult>
+    public string Name { get; set; } = string.Empty;
+}
+
+public class GetAstronautDutiesByNameHandler : IRequestHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
+{
+    private readonly StargateContext _context;
+
+    public GetAstronautDutiesByNameHandler(StargateContext context)
     {
-        public string Name { get; set; } = string.Empty;
+        _context = context;
     }
 
-    public class GetAstronautDutiesByNameHandler : IRequestHandler<GetAstronautDutiesByName, GetAstronautDutiesByNameResult>
+    public async Task<GetAstronautDutiesByNameResult> Handle(GetAstronautDutiesByName request, CancellationToken cancellationToken)
     {
-        private readonly StargateContext _context;
 
-        public GetAstronautDutiesByNameHandler(StargateContext context)
-        {
-            _context = context;
-        }
+        var result = new GetAstronautDutiesByNameResult();
 
-        public async Task<GetAstronautDutiesByNameResult> Handle(GetAstronautDutiesByName request, CancellationToken cancellationToken)
-        {
+        var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE \'{request.Name}\' = a.Name";
 
-            var result = new GetAstronautDutiesByNameResult();
+        var person = await _context.Connection.QueryFirstOrDefaultAsync<PersonAstronaut>(query);
 
-            var query = $"SELECT a.Id as PersonId, a.Name, b.CurrentRank, b.CurrentDutyTitle, b.CareerStartDate, b.CareerEndDate FROM [Person] a LEFT JOIN [AstronautDetail] b on b.PersonId = a.Id WHERE \'{request.Name}\' = a.Name";
+        result.Person = person!;
 
-            var person = await _context.Connection.QueryFirstOrDefaultAsync<PersonAstronaut>(query);
+        query = $"SELECT * FROM [AstronautDuty] WHERE {person?.PersonId} = PersonId Order By DutyStartDate Desc";
 
-            result.Person = person!;
+        var duties = await _context.Connection.QueryAsync<AstronautDuty>(query);
 
-            query = $"SELECT * FROM [AstronautDuty] WHERE {person?.PersonId} = PersonId Order By DutyStartDate Desc";
+        result.AstronautDuties = duties.ToList();
 
-            var duties = await _context.Connection.QueryAsync<AstronautDuty>(query);
+        return result;
 
-            result.AstronautDuties = duties.ToList();
-
-            return result;
-
-        }
     }
+}
 
-    public class GetAstronautDutiesByNameResult : BaseResponse
-    {
-        public PersonAstronaut Person { get; set; }
-        public List<AstronautDuty> AstronautDuties { get; set; } = new List<AstronautDuty>();
-    }
+public class GetAstronautDutiesByNameResult : BaseResponse
+{
+    public PersonAstronaut Person { get; set; }
+    public List<AstronautDuty> AstronautDuties { get; set; } = new List<AstronautDuty>();
 }
