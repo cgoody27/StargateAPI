@@ -6,25 +6,33 @@ using StargateAPI.Business.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-builder.Services.AddDbContext<StargateContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("StarbaseApiDatabase")));
-
-Log.Logger = new LoggerConfiguration()
-    .MinimumLevel.Information()
-    .WriteTo.Console()
-    .WriteTo.SQLite(
-        Path.Combine(AppContext.BaseDirectory, "logs.db"),
-        tableName: "Logs"
-    )
-    .CreateBootstrapLogger(); // Use CreateBootstrapLogger instead of CreateLogger
-
 try
 {
+    builder.Services.AddControllers();
+    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+    builder.Services.AddDbContext<StargateContext>(options =>
+        options.UseSqlite(builder.Configuration.GetConnectionString("StarbaseApiDatabase")));
+
+    Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Information()
+        .WriteTo.Console()
+        .WriteTo.SQLite(
+            Path.Combine(AppContext.BaseDirectory, "logs.db"),
+            tableName: "Logs"
+        )
+        .CreateBootstrapLogger(); // Use CreateBootstrapLogger instead of CreateLogger
+
+    // CORS for Vite dev server
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontend", p => p
+            .WithOrigins("http://localhost:3000")
+            .AllowAnyMethod()
+            .AllowAnyHeader());
+    });
+
     builder.Host.UseSerilog((context, services, configuration) => configuration
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
@@ -50,6 +58,8 @@ try
     }
 
     app.UseHttpsRedirection();
+
+    app.UseCors("AllowFrontend");
 
     app.UseAuthorization();
 

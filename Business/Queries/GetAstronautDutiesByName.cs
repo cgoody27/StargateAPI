@@ -15,6 +15,7 @@ public class GetAstronautDutiesByNameHandler : IRequestHandler<GetAstronautDutie
 {
     private readonly StargateContext _context;
 
+
     public GetAstronautDutiesByNameHandler(StargateContext context)
     {
         _context = context;

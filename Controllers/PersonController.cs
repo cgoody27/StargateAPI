@@ -26,6 +26,9 @@ public class PersonController : ControllerBase
         try
         {
             var result = await _mediator.Send(new GetPeople() { });
+
+            _logger.LogInformation("Fetched all people");
+
             return this.GetResponse(result);
         }
         catch (Exception ex)
@@ -59,6 +62,8 @@ public class PersonController : ControllerBase
             {
                 Name = name
             });
+
+            _logger.LogInformation("Fetched person details for {PersonName}", name);
 
             return this.GetResponse(result);
         }
