@@ -31,10 +31,8 @@ public class UpdatePersonPreProcessor : IRequestPreProcessor<UpdatePerson>
         var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
         if (person is null)
-        {
             throw new BadHttpRequestException("Bad Request");
-        };
-
+        
         _logger.LogInformation("Pre-processing UpdatePerson request for Name {PersonName}", request.Name);
 
         return Task.CompletedTask;
@@ -53,17 +51,9 @@ public class UpdatePersonHandler : IRequestHandler<UpdatePerson, UpdatePersonRes
     }
     public async Task<UpdatePersonResult> Handle(UpdatePerson request, CancellationToken cancellationToken)
     {
-        if (request.Name == string.Empty)
-            throw new BadHttpRequestException("Bad Request - Name is required");
-
         var person = await _context.People.FirstOrDefaultAsync(z => z.Name == request.Name, cancellationToken);
 
-        if (person is null)
-        {
-            throw new Exception($"{request.Name} not found");
-        }
-
-        person.AstronautDetail = request.AstronautDetail;
+        person!.AstronautDetail = request.AstronautDetail;
         person.AstronautDuties = request.AstronautDuties;
 
         _context.People.Update(person);

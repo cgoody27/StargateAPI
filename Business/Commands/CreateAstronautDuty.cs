@@ -37,8 +37,9 @@ public class CreateAstronautDutyPreProcessor : IRequestPreProcessor<CreateAstron
 
         var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-        if (person is null) throw new BadHttpRequestException("Bad Request");
-
+        if (person is null) 
+            throw new BadHttpRequestException("Bad Request");
+        
         var verifyNoPreviousDuty = _context.AstronautDuties.FirstOrDefault(z => z.DutyTitle == request.DutyTitle && z.DutyStartDate == request.DutyStartDate);
 
         if (verifyNoPreviousDuty is not null)
@@ -63,9 +64,6 @@ public class CreateAstronautDutyHandler : IRequestHandler<CreateAstronautDuty, C
     }
     public async Task<CreateAstronautDutyResult> Handle(CreateAstronautDuty request, CancellationToken cancellationToken)
     {
-        if (request.Name == string.Empty || request.Rank == string.Empty || request.DutyTitle == string.Empty)
-            throw new BadHttpRequestException("Bad Request - Name, Rank and DutyTitle are required");
-
         var query = $"SELECT * FROM [Person] WHERE \'{request.Name}\' = Name";
 
         var person = await _context.Connection.QueryFirstOrDefaultAsync<Person>(query);

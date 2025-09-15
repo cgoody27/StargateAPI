@@ -29,7 +29,8 @@ public class CreatePersonPreProcessor : IRequestPreProcessor<CreatePerson>
 
         var person = _context.People.AsNoTracking().FirstOrDefault(z => z.Name == request.Name);
 
-        if (person is not null) throw new BadHttpRequestException("Bad Request");
+        if (person is not null) 
+            throw new BadHttpRequestException("Bad Request");
 
         _logger.LogInformation("Pre-processing CreatePerson request for Name {PersonName}", request.Name);
 
@@ -49,9 +50,6 @@ public class CreatePersonHandler : IRequestHandler<CreatePerson, CreatePersonRes
     }
     public async Task<CreatePersonResult> Handle(CreatePerson request, CancellationToken cancellationToken)
     {
-        if (request.Name == string.Empty)
-            throw new BadHttpRequestException("Bad Request - Name is required");
-
         var newPerson = new Person()
         {
             Name = request.Name
